@@ -8,49 +8,112 @@ final moviesProvider = FutureProvider<List>((ref) async {
   return response.data['results'];
 });
 
-class MovieListScreen extends ConsumerWidget {
+class MovieListScreen extends ConsumerStatefulWidget {
   const MovieListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  _MovieListScreenState createState() => _MovieListScreenState();
+}
+
+class _MovieListScreenState extends ConsumerState<MovieListScreen> {
+  late TextEditingController _searchController;
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final moviesAsyncValue = ref.watch(moviesProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Movies'),
         backgroundColor: Theme.of(context).colorScheme.primary,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              // Navigacija na ekran postavki koristeći GoRouter
+              context.go('/settings');
+            },
+          ),
+        ],
       ),
-      body: moviesAsyncValue.when(
-        data: (movies) => ListView.builder(
-          itemCount: movies.length,
-          itemBuilder: (context, index) {
-            final movie = movies[index];
-            final posterUrl = 'https://image.tmdb.org/t/p/w500${movie['poster_path']}';
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: const InputDecoration(
+                labelText: 'Search Movies',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value.toLowerCase(); // Ažuriranje pretrage
+                });
+              },
+            ),
+          ),
+          Expanded(
+            child: moviesAsyncValue.when(
+              data: (movies) {
+                // Filtriranje filmova na temelju pretrage
+                final filteredMovies = movies.where((movie) {
+                  final title = movie['title'].toString().toLowerCase();
+                  return title.contains(_searchQuery);
+                }).toList();
 
-            return ListTile(
-              leading: Image.network(
-                posterUrl,
-                width: 50,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Icon(Icons.error); // Ako slika ne uspije učitati
-                },
-              ),
-              title: Text(
-                movie['title'],
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              subtitle: Text(
-                'Release Date: ${movie['release_date']}', // Dodan podnaslov s datumom izlaska
-                style: TextStyle(color: Colors.grey[600]),
-              ),
-              trailing: const Icon(Icons.arrow_forward_ios), // Dodana strelica za bolji UX
-              onTap: () => context.go('/movies/${movie['id']}', extra: movie),
-            );
-          },
-        ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('Error: $error')),
+                if (filteredMovies.isEmpty) {
+                  return const Center(child: Text('No movies found.'));
+                }
+
+                return ListView.builder(
+                  itemCount: filteredMovies.length,
+                  itemBuilder: (context, index) {
+                    final movie = filteredMovies[index];
+                    final posterUrl = 'https://image.tmdb.org/t/p/w500${movie['poster_path']}';
+
+                    return ListTile(
+                      leading: Image.network(
+                        posterUrl,
+                        width: 50,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Icon(Icons.error); // Ako slika ne uspije učitati
+                        },
+                      ),
+                      title: Text(
+                        movie['title'],
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      subtitle: Text(
+                        'Release Date: ${movie['release_date']}', // Dodan podnaslov s datumom izlaska
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                      trailing: const Icon(Icons.arrow_forward_ios), // Dodana strelica za bolji UX
+                      onTap: () => context.go('/movies/${movie['id']}', extra: movie),
+                    );
+                  },
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stack) => Center(child: Text('Error: $error')),
+            ),
+          ),
+        ],
       ),
     );
   }
