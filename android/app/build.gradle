@@ -40,3 +40,6 @@ tasks.register('exampleTask') {
         println "Running after all dependencies"
     }
 }
+task wrapper(type: Wrapper) {
+    gradleVersion = '8.1.1' 
+}
