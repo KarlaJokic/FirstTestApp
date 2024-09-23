@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 
+// Provider za dohvaćanje popularnih filmova iz TMDB API-ja
 final moviesProvider = FutureProvider<List>((ref) async {
-  final response = await Dio().get('https://api.themoviedb.org/3/movie/popular?api_key=faa5bc2acc3d9a811902b1ef84bd6ba8');
+  final response = await Dio().get(
+      'https://api.themoviedb.org/3/movie/popular?api_key=faa5bc2acc3d9a811902b1ef84bd6ba8');
   return response.data['results'];
 });
 
@@ -12,10 +14,10 @@ class MovieListScreen extends ConsumerStatefulWidget {
   const MovieListScreen({super.key});
 
   @override
-  _MovieListScreenState createState() => _MovieListScreenState();
+  MovieListScreenState createState() => MovieListScreenState();
 }
 
-class _MovieListScreenState extends ConsumerState<MovieListScreen> {
+class MovieListScreenState extends ConsumerState<MovieListScreen> {
   late TextEditingController _searchController;
   String _searchQuery = '';
 
@@ -91,26 +93,29 @@ class _MovieListScreenState extends ConsumerState<MovieListScreen> {
                   itemCount: filteredMovies.length,
                   itemBuilder: (context, index) {
                     final movie = filteredMovies[index];
-                    final posterUrl = 'https://image.tmdb.org/t/p/w500${movie['poster_path']}';
+                    final posterUrl =
+                        'https://image.tmdb.org/t/p/w500${movie['poster_path']}';
 
                     return ListTile(
-                      leading: Image.network(
-                        posterUrl,
-                        width: 50,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Icon(Icons.error); // Ako slika ne uspije učitati
-                        },
+                      leading: AspectRatio(
+                        aspectRatio: 2 / 3, // Zadržava proporcije slike
+                        child: Image.network(
+                          posterUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(Icons.error); // Ako slika ne uspije učitati
+                          },
+                        ),
                       ),
                       title: Text(
                         movie['title'],
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       subtitle: Text(
-                        'Release Date: ${movie['release_date']}', // Dodan podnaslov s datumom izlaska
+                        'Release Date: ${movie['release_date']}',
                         style: TextStyle(color: Colors.grey[600]),
                       ),
-                      trailing: const Icon(Icons.arrow_forward_ios), // Dodana strelica za bolji UX
+                      trailing: const Icon(Icons.arrow_forward_ios),
                       onTap: () => context.go('/movies/${movie['id']}', extra: movie),
                     );
                   },

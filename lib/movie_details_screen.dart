@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart'; // Importaj GoRouter
+import 'package:go_router/go_router.dart';
 
 class MovieDetailsScreen extends StatelessWidget {
   final Map movie;
@@ -17,20 +17,43 @@ class MovieDetailsScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
             // Navigacija natrag na listu filmova koristeći GoRouter
-            context.go('/movies'); // Umjesto context.pop(), koristimo context.go
+            context.go('/movies');
           },
         ),
       ),
-      body: Padding(
+      body: SingleChildScrollView( // Omogućuje skrolanje ako je sadržaj prevelik
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Image.network(posterUrl), // Dodajemo poster slike
+            AspectRatio( // Zadržava proporcije slike
+              aspectRatio: 2 / 3,
+              child: Image.network(
+                posterUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Icon(Icons.error, size: 100, color: Colors.red);
+                },
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Title: ${movie['title']}',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
             const SizedBox(height: 10),
-            Text('Title: ${movie['title']}', style: Theme.of(context).textTheme.headlineSmall),
-            const SizedBox(height: 10),
-            Text('Overview: ${movie['overview']}'),
+            Text(
+              'Overview: ${movie['overview']}',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Release Date: ${movie['release_date']}',
+              style: TextStyle(
+                fontStyle: FontStyle.italic,
+                color: Colors.grey[600],
+              ),
+            ),
           ],
         ),
       ),
