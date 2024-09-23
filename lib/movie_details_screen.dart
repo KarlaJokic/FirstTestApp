@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:movie_app/providers/favorites_provider.dart';
 
-class MovieDetailsScreen extends StatelessWidget {
+class MovieDetailsScreen extends ConsumerWidget {
   final Map movie;
 
   const MovieDetailsScreen({required this.movie, super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final posterUrl = 'https://image.tmdb.org/t/p/w500${movie['poster_path']}';
 
     return Scaffold(
@@ -20,6 +22,19 @@ class MovieDetailsScreen extends StatelessWidget {
             context.go('/movies');
           },
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.favorite_border),
+            onPressed: () {
+              // Dodaj film u favorite
+              ref.read(favoritesProvider.notifier).addMovie(movie);
+              // Možete dodati snackbar za povratne informacije
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('${movie['title']} added to favorites')),
+              );
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView( // Omogućuje skrolanje ako je sadržaj prevelik
         padding: const EdgeInsets.all(16.0),
