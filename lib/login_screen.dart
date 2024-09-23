@@ -1,77 +1,101 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _formKey = GlobalKey<FormState>();
-  String _username = '';
-  String _password = '';
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  String errorMessage = '';
+  bool isLoading = false;
 
-  void _login() {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-      // Provjeri korisničke podatke
-      if (_username == 'admin' && _password == 'password') {
-        // Ako su podaci ispravni, idi na glavni ekran s filmovima
-        context.go('/movies');
-      } else {
-        // Ako su podaci netočni, prikazi grešku
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Pogrešno korisničko ime ili lozinka')),
-        );
-      }
-    }
+  Future<void> _login() async {
+  // Validate the email and password fields
+  if (_emailController.text.trim().isEmpty || _passwordController.text.trim().isEmpty) {
+    setState(() {
+      errorMessage = 'Email and password cannot be empty.';
+    });
+    return;
   }
+
+  setState(() {
+    isLoading = true;
+  });
+
+  try {
+    // Attempt to sign in with Firebase
+    UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+    );
+
+    // Example: Logging the user's email or other information
+    print('Logged in as: ${userCredential.user?.email}');
+    
+    // On success, navigate to the movies screen
+    context.go('/movies');
+  } on FirebaseAuthException catch (e) {
+    setState(() {
+      errorMessage = e.message ?? 'An error occurred during login';
+    });
+  } finally {
+    setState(() {
+      isLoading = false;
+    });
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
+      appBar: AppBar(
+        title: const Text('Login'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'Korisničko ime'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Unesite korisničko ime';
-                  }
-                  return null;
-                },
-                onSaved: (value) {
-                  _username = value!;
-                },
-              ),
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'Lozinka'),
-                obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Unesite lozinku';
-                  }
-                  return null;
-                },
-                onSaved: (value) {
-                  _password = value!;
-                },
-              ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Email input field
+            TextField(
+              controller: _emailController,
+              decoration: const InputDecoration(labelText: 'Email'),
+              keyboardType: TextInputType.emailAddress,
+            ),
+            // Password input field
+            TextField(
+              controller: _passwordController,
+              decoration: const InputDecoration(labelText: 'Password'),
+              obscureText: true,
+            ),
+            const SizedBox(height: 20),
+            
+            // Loading indicator or login button
+            isLoading
+              ? const CircularProgressIndicator() // Show loading indicator while waiting for login
+              : ElevatedButton(
+                  onPressed: _login,
+                  child: const Text('Login'),
+                ),
+
+            // Display any error messages
+            if (errorMessage.isNotEmpty) ...[
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _login,
-                child: const Text('Login'),
+              Text(
+                errorMessage,
+                style: const TextStyle(color: Colors.red),
               ),
             ],
-          ),
+          ],
         ),
       ),
     );

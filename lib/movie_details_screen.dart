@@ -14,7 +14,7 @@ class MovieDetailsScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(movie['title']),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () {
             // Navigacija natrag na listu filmova koristeći GoRouter
             context.go('/movies'); // Umjesto context.pop(), koristimo context.go

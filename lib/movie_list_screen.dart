@@ -41,6 +41,13 @@ class _MovieListScreenState extends ConsumerState<MovieListScreen> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         actions: [
           IconButton(
+            icon: const Icon(Icons.person),
+            onPressed: () {
+              // Navigacija na ekran profila koristeći GoRouter
+              context.go('/profile');
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
               // Navigacija na ekran postavki koristeći GoRouter
