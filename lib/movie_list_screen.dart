@@ -69,7 +69,7 @@ class MoviePaginationNotifier extends StateNotifier<MoviePaginationState> {
       state = state.copyWith(
         movies: [...state.movies, ...newMovies],
         currentPage: page,
-        hasMore: newMovies.length > 0,
+        hasMore: newMovies.isNotEmpty,
         isLoading: false,
       );
     } catch (error) {

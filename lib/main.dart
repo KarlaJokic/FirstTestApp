@@ -8,10 +8,13 @@ import 'package:movie_app/login_screen.dart';
 import 'package:movie_app/settings_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:movie_app/profile_screen.dart';
+import 'firebase_options.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(
     const ProviderScope(
       child: MyApp(),
