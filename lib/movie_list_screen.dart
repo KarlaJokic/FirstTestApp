@@ -45,14 +45,12 @@ class MovieListScreenState extends ConsumerState<MovieListScreen> {
           IconButton(
             icon: const Icon(Icons.person),
             onPressed: () {
-              // Navigacija na ekran profila koristeći GoRouter
               context.go('/profile');
             },
           ),
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
-              // Navigacija na ekran postavki koristeći GoRouter
               context.go('/settings');
             },
           ),
